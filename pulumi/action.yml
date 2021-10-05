@@ -1,0 +1,42 @@
+name: Run a pulumi command
+description: Run Pulumi and commit any config changes
+inputs:
+  stack-name:
+    description: Name of the stack to use
+    required: true
+  command:
+    description: The command to run
+    required: true
+  work-dir:
+    required: true
+    default: pulumi
+  secrets-provider:
+    required: false
+  backend-url:
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Install Pulumi CLI
+      uses: pulumi/setup-pulumi@v2
+    - uses: pulumi/actions@v3
+      with:
+        work-dir: ${{ inputs.work-dir }}
+        upsert: true
+        command: ${{ inputs.command }}
+        stack-name: ${{ inputs.stack-name }}
+        secrets-provider: ${{ inputs.secrets-provider }}
+      env:
+        PULUMI_BACKEND_URL: ${{ inputs.backend-url }}
+    - name: Commit any Pulumi config updates
+      shell: bash
+      run: |
+        files=$(git ls-files --other --directory --exclude-standard ${{ inputs.work-dir }}/Pulumi.*.yaml)
+        if [ ! -z "$files" ]; then
+          # In order to make a commit, we need to initialize a user.
+          git config user.name "GitHub actions"
+          git config user.email noreply@cynomi.com
+          git add $files
+          git commit --message "Pulumi stack ${{ inputs.stack-name }}"
+          git push
+        fi

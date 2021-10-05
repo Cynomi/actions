@@ -1,0 +1,23 @@
+name: Extract the branch and slug from GitHub ref
+inputs:
+  ref:
+    description: 'GitHub branch ref'
+    required: false
+    default: ${{ github.ref }}
+outputs:
+  branch:
+    value: ${{ steps.data.outputs.branch }}
+  slug:
+    value: ${{ steps.data.outputs.slug }}
+runs:
+  using: "composite"
+  steps:
+    - name: Extract branch name
+      id: data
+      shell: bash
+      run: |
+        branch=$(echo ${ref#refs/heads/})
+        echo "::set-output name=branch::$branch)"
+        echo "::set-output name=slug::$(echo $branch | tr '/' '-')"
+      env:
+        ref: ${{ inputs.ref }}
