@@ -17,7 +17,7 @@ runs:
       shell: bash
       run: |
         branch=$(echo ${ref#refs/heads/})
-        echo "::set-output name=branch::$branch)"
+        echo "::set-output name=branch::$branch"
         echo "::set-output name=slug::$(echo $branch | tr '/' '-')"
       env:
         ref: ${{ inputs.ref }}
